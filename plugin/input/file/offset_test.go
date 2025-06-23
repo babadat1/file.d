@@ -94,13 +94,13 @@ func TestParseOffsetsSkipInvalidStream(t *testing.T) {
 	assert.True(t, has, "stream isn't found")
 	assert.Equal(t, int64(200), offset, "wrong offset")
 
-	offset, has = item.streams["error:"]
+	_, has = item.streams["error:"]
 	assert.True(t, !has, "invalid stream found")
 
 	item, has = offsets[pipeline.SourceID(4321)]
 	assert.True(t, has, "item isn't found")
 
-	offset, has = item.streams["error:"]
+	_, has = item.streams["error:"]
 	assert.True(t, !has, "invalid stream found")
 
 	offset, has = item.streams["stderr"]
