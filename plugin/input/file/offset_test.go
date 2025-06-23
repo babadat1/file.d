@@ -9,6 +9,7 @@ import (
 	"github.com/ozontech/file.d/metric"
 	"github.com/ozontech/file.d/pipeline"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
@@ -155,6 +156,7 @@ func TestSaveOffsetsSkipInvalidStream(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.NotContains(t, string(content), "error:", "invalid stream was written")
+	assert.Equal(t, testutil.ToFloat64(metrics.invalidStreamsCountMetric), float64(1))
 }
 
 func TestParallelOffsetsSave(t *testing.T) {
