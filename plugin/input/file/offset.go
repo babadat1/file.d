@@ -166,8 +166,9 @@ func (o *offsetDB) parseStreams(content string, streams streamsOffsets) (string,
 			return "", fmt.Errorf("wrong offsets format, no separator %q", line)
 		}
 
-		if line[pos+1] == ':' {
-			logger.Warnf("invalid stream name: %s, skipping stream", line[4:pos+2])
+		streamNameWithColon := line[4 : pos+2]
+		if !isValidStreamName(streamNameWithColon) {
+			logger.Warnf("invalid stream name: %s, skipping stream", streamNameWithColon)
 			continue
 		}
 
@@ -257,8 +258,9 @@ func (o *offsetDB) save(jobs map[pipeline.SourceID]*Job, mu *sync.RWMutex) {
 
 		o.buf = append(o.buf, "  streams:\n"...)
 		for _, strOff := range job.offsets {
-			if strOff.Stream[len(strOff.Stream)-1] == ':' {
+			if !isValidStreamName(string(strOff.Stream)) {
 				o.invalidStreamsCountMetric.Inc()
+				logger.Errorf("can't write invalid stream %s, file %s", strOff.Stream, job.filename)
 				continue
 			}
 			o.buf = append(o.buf, "    "...)
@@ -295,4 +297,8 @@ func (o *offsetDB) snapshotJobs(mu *sync.RWMutex, jobs map[pipeline.SourceID]*Jo
 	mu.RUnlock()
 
 	return o.jobsSnapshot
+}
+
+func isValidStreamName(streamName string) bool {
+	return streamName[len(streamName)-1] != ':'
 }
