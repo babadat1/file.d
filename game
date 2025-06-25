@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Side Scroller Game</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #eee; }
+    canvas { display: block; background: #b3ecff; }
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const gravity = 0.5;
+  let isJumping = false;
+
+  const player = {
+    x: 50,
+    y: 300,
+    width: 40,
+    height: 40,
+    dy: 0,
+    jumpForce: -10,
+    color: 'red'
+  };
+
+  const obstacles = [];
+  let frame = 0;
+  let gameOver = false;
+
+  function createObstacle() {
+    const obstacle = {
+      x: canvas.width,
+      y: 320,
+      width: 30,
+      height: 30,
+      color: 'green'
+    };
+    obstacles.push(obstacle);
+  }
+
+  function update() {
+    if (gameOver) return;
+
+    // Player physics
+    player.dy += gravity;
+    player.y += player.dy;
+
+    // Ground collision
+    if (player.y > 300) {
+      player.y = 300;
+      player.dy = 0;
+      isJumping = false;
+    }
+
+    // Move obstacles
+    for (let i = 0; i < obstacles.length; i++) {
+      obstacles[i].x -= 5;
+
+      // Collision detection
+      if (
+        player.x < obstacles[i].x + obstacles[i].width &&
+        player.x + player.width > obstacles[i].x &&
+        player.y < obstacles[i].y + obstacles[i].height &&
+        player.y + player.height > obstacles[i].y
+      ) {
+        gameOver = true;
+        alert('Game Over!');
+        location.reload(); // Restart game
+      }
+    }
+
+    // Create new obstacles
+    if (frame % 90 === 0) {
+      createObstacle();
+    }
+
+    frame++;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw ground
+    ctx.fillStyle = '#654321';
+    ctx.fillRect(0, 360, canvas.width, 40);
+
+    // Draw player
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // Draw obstacles
+    for (let i = 0; i < obstacles.length; i++) {
+      ctx.fillStyle = obstacles[i].color;
+      ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
+    }
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.code === 'Space' && !isJumping) {
+      player.dy = player.jumpForce;
+      isJumping = true;
+    }
+  });
+
+  loop();
+</script>
+</body>
+</html>
